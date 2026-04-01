@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>FM26 — RP Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -296,6 +296,142 @@ summary::before{content:'⚙';font-size:13px}
 #btnLogout{display:none;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--txt2);font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s}
 #btnLogout:hover{border-color:rgba(255,255,255,.25);color:#fff}
 #userBadge{display:none;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:#fff;letter-spacing:.04em}
+
+/* ── MOBILE RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Header */
+  header{padding:0 12px;height:52px}
+  .h-logo{font-size:20px}
+  .h-season{display:none}
+  .btn-home-text{padding:6px 10px;font-size:10px}
+  #btnLogout{padding:6px 10px;font-size:10px}
+
+  /* Home hero */
+  .home-top{padding:28px 16px 16px}
+  .home-title{font-size:52px}
+
+  /* World button */
+  .world-card{padding:0 14px 14px}
+  .world-label{font-size:18px}
+  .world-sub{font-size:11px}
+
+  /* Club cards — horizontal layout on mobile */
+  .clubs-wrap{padding:0 14px 40px}
+  .clubs-grid{grid-template-columns:1fr;gap:10px}
+  .ccard-inner{display:flex;flex-direction:row;align-items:center}
+  .ccard-top{width:80px;height:80px;flex-shrink:0;border-radius:0}
+  .ccard-logo{width:50px;height:50px}
+  .ccard-body{padding:12px}
+  .ccard-name{font-size:20px}
+  .ccard-mgr{margin-bottom:8px}
+  .ccard-cta{bottom:12px;right:12px}
+
+  /* Club hero */
+  .club-hero{padding:22px 14px 18px}
+  .club-hero-logo{width:64px;height:64px;margin-bottom:8px}
+  .club-hero-name{font-size:32px}
+
+  /* Tabs — scrollable */
+  .ctabs{padding:0 8px}
+  .ctab{padding:11px 12px;font-size:10px}
+
+  /* Club body */
+  .club-body{padding:16px 12px 80px}
+
+  /* Coach card */
+  .coach-wrap{grid-template-columns:72px 1fr}
+  .coach-init{font-size:32px}
+  .coach-cname{font-size:20px}
+  .coach-kpis{gap:10px}
+  .ckpi-v{font-size:22px}
+
+  /* Forms */
+  .edit-row{flex-direction:column;gap:8px}
+  .fi-sm{width:100%}
+  .fi-md{width:100%}
+  .edit-row .btn-save{align-self:flex-start}
+  .form-input{font-size:14px}
+
+  /* Trophies */
+  .trophies-grid{grid-template-columns:1fr 1fr}
+
+  /* Players */
+  .pl-grid{grid-template-columns:1fr}
+  .pl-num{font-size:34px;min-width:28px}
+  .pl-name{font-size:14px}
+
+  /* X posts / news */
+  .x-post{padding:12px 10px}
+  .x-post-ava{width:36px;height:36px}
+  .x-post-ava img{width:32px;height:32px}
+  .x-handle{font-size:13px}
+  .x-at,.x-time{font-size:11px}
+  .x-post-text{font-size:13px}
+  .x-actions{gap:14px}
+  .x-media-sel{flex-wrap:wrap;gap:4px}
+  .x-cat-sel{flex-wrap:wrap;gap:4px}
+  .x-post-form{padding:12px}
+  .x-form-bottom{gap:6px;flex-wrap:wrap}
+  .x-post-btn{padding:8px 16px;font-size:12px}
+
+  /* Fabrizio posts */
+  .fab-post{padding:12px 10px}
+  .fab-ava{width:36px;height:36px;font-size:14px;flex-shrink:0}
+  .fab-name{font-size:13px}
+  .fab-text{font-size:13px}
+  .fab-transfer-card{flex-wrap:wrap;gap:8px;padding:10px 12px}
+  .fab-player{font-size:14px}
+  .fab-fee{font-size:18px}
+  .fab-form{padding:12px}
+
+  /* World page */
+  .world-hero{padding:28px 14px 20px}
+  .world-hero-title{font-size:36px}
+  .world-body{padding:16px 12px 60px}
+
+  /* Popup / settings */
+  .popup-box{padding:22px 18px;margin:16px}
+  .popup-title{font-size:26px}
+  .settings-box{padding:20px 16px;margin:16px;max-width:100%}
+
+  /* Login */
+  .login-wrap{padding:16px}
+  .login-box{padding:20px 16px}
+  .login-brand-title{font-size:42px}
+  .login-clubs{gap:8px}
+  .login-club-btn{padding:10px 6px}
+  .login-club-btn img{width:34px;height:34px}
+
+  /* Transfer form */
+  .fab-form .edit-row{flex-direction:column}
+  .fi-full{width:100%}
+
+  /* Scrollbar hide on mobile */
+  ::-webkit-scrollbar{display:none}
+  scrollbar-width:none;
+
+  /* Settings */
+  .settings-row .edit-row{flex-direction:row}
+}
+
+@media (max-width: 380px) {
+  .home-title{font-size:44px}
+  .clubs-grid{gap:8px}
+  .ccard-top{width:70px;height:70px}
+  .ccard-logo{width:44px;height:44px}
+  .ccard-name{font-size:18px}
+  .club-hero-name{font-size:28px}
+  .coach-wrap{grid-template-columns:64px 1fr}
+  .trophies-grid{grid-template-columns:1fr}
+  .x-at,.x-dot,.x-time{display:none}
+}
+
+/* Safe area for iPhones with notch */
+@supports (padding: max(0px)) {
+  header{padding-top:max(0px, env(safe-area-inset-top))}
+  .club-body,.world-body,.clubs-wrap{padding-bottom:max(80px, calc(60px + env(safe-area-inset-bottom)))}
+  .toast{bottom:max(24px, calc(16px + env(safe-area-inset-bottom)))}
+}
 </style>
 </head>
 <body>
