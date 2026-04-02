@@ -432,6 +432,30 @@ summary::before{content:'⚙';font-size:13px}
   .club-body,.world-body,.clubs-wrap{padding-bottom:max(80px, calc(60px + env(safe-area-inset-bottom)))}
   .toast{bottom:max(24px, calc(16px + env(safe-area-inset-bottom)))}
 }
+
+/* ── NOTIFICATIONS ───────────────────────────────────────────────── */
+.notif-container{position:fixed;top:64px;right:16px;z-index:997;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:300px}
+.notif{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;pointer-events:all;animation:notifIn .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:opacity .3s,transform .3s}
+.notif.out{opacity:0;transform:translateX(20px)}
+@keyframes notifIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.notif-logo{width:32px;height:32px;border-radius:50%;object-fit:contain;flex-shrink:0;background:var(--bg3);padding:2px}
+.notif-logo-world{width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.notif-body{flex:1;min-width:0}
+.notif-club{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;transition:color .4s}
+.notif-text{font-size:12px;color:var(--txt2);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.notif-time{font-size:10px;color:var(--txt2);margin-top:3px}
+.notif-close{background:none;border:none;color:var(--txt2);cursor:pointer;font-size:14px;padding:0;line-height:1;flex-shrink:0;opacity:.5}
+.notif-close:hover{opacity:1}
+
+/* ── AVATAR PHOTO ────────────────────────────────────────────────── */
+.coach-avatar-wrap{position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.coach-avatar-wrap:hover .coach-avatar-overlay{opacity:1}
+.coach-avatar-img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.15)}
+.coach-avatar-placeholder{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.1);border:2px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:28px;color:rgba(255,255,255,.8);transition:border-color .2s}
+.coach-avatar-overlay{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;font-size:18px}
+.coach-left{cursor:pointer;position:relative}
+.coach-left:hover .coach-avatar-overlay{opacity:1}
+.coach-avatar-input{display:none}
 </style>
 </head>
 <body>
@@ -442,6 +466,10 @@ summary::before{content:'⚙';font-size:13px}
   <div style="font-size:12px;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase">Chargement…</div>
 </div>
 <div id="toast" class="toast"></div>
+
+
+<!-- NOTIFICATION CONTAINER -->
+<div class="notif-container" id="notifContainer"></div>
 
 <!-- ══ PAGE LOGIN ══ -->
 <div class="page" id="pageLogin" style="display:none">
@@ -630,9 +658,16 @@ summary::before{content:'⚙';font-size:13px}
       <div style="margin-bottom:28px">
         <div class="sh"><div class="sh-bar"></div><div class="sh-title">Manager<span class="sh-sub">Identité du staff</span></div></div>
         <div class="coach-wrap">
-          <div class="coach-left" id="coachLeft">
-            <div class="coach-init" id="coachInit">M</div>
-            <div class="coach-lbl">Manager</div>
+          <div class="coach-left" id="coachLeft" onclick="triggerAvatarUpload()" title="Changer la photo">
+            <div class="coach-avatar-wrap">
+              <div class="coach-avatar-placeholder" id="coachAvatarPlaceholder">
+                <span id="coachInit">M</span>
+              </div>
+              <img id="coachAvatarImg" class="coach-avatar-img" src="" alt="" style="display:none">
+              <div class="coach-avatar-overlay">&#128247;</div>
+            </div>
+            <div class="coach-lbl" style="margin-top:6px">Manager</div>
+            <input type="file" id="avatarInput" class="coach-avatar-input" accept="image/*" onchange="handleAvatarUpload(event)">
           </div>
           <div class="coach-right">
             <div class="coach-fname" id="coachFname">Marwan</div>
@@ -919,6 +954,48 @@ async function gcur(type, defaultVal) {
 }
 async function scur(type, val) { await saveAndCache(currentClub, type, val); }
 
+
+// ── NOTIFICATION SYSTEM ───────────────────────────────────────────
+const CLUB_COLORS = { lfc: '#C8102E', bfc: '#DA291C', nffc: '#CC0000', world: '#F6EB61' };
+const CLUB_NAMES  = { lfc: 'Liverpool FC', bfc: 'AFC Bournemouth', nffc: 'Nottingham Forest', world: 'Actu Monde FM' };
+
+function pushNotif(clubId, type, text) {
+  // Don't notify yourself for your own club actions
+  if (currentUser && currentUser.club === clubId && clubId !== 'world') return;
+  const container = document.getElementById('notifContainer');
+  if (!container) return;
+
+  const isWorld = clubId === 'world';
+  const color = CLUB_COLORS[clubId] || '#888';
+  const clubName = CLUB_NAMES[clubId] || clubId;
+
+  const typeLabel = {
+    news: 'Actu', transfer: 'Mercato', trophy: 'Palmares',
+    exploit: 'Exploit', player: 'Joueur', world: 'Annonce'
+  }[type] || 'Info';
+
+  const d = document.createElement('div');
+  d.className = 'notif';
+  d.innerHTML =
+    (isWorld
+      ? '<div class="notif-logo-world">🌍</div>'
+      : '<img class="notif-logo" src="' + LOGOS[clubId] + '" alt="">') +
+    '<div class="notif-body">' +
+      '<div class="notif-club" style="color:' + color + '">' + clubName + ' · ' + typeLabel + '</div>' +
+      '<div class="notif-text">' + text + '</div>' +
+      '<div class="notif-time">A l instant</div>' +
+    '</div>' +
+    '<button class="notif-close" onclick="this.parentElement.remove()">✕</button>';
+
+  container.appendChild(d);
+
+  // Auto remove after 5s
+  setTimeout(() => {
+    d.classList.add('out');
+    setTimeout(() => { if (d.parentElement) d.remove(); }, 350);
+  }, 5000);
+}
+
 // ── CLUB PASSWORDS ────────────────────────────────────────────────
 const CLUB_PASSWORDS = { lfc: 'anfield', bfc: 'vitality', nffc: 'trentside' };
 
@@ -1118,6 +1195,9 @@ function updateSeasonUI() {
 }
 function checkSeasonPopup() {
   if (!currentUser || currentUser.club !== 'lfc') return;
+  // Only show once per browser session
+  if (sessionStorage.getItem('fm26_season_shown')) return;
+  sessionStorage.setItem('fm26_season_shown', '1');
   const s = getSeason();
   const parts = s.match(/(\d{4})\/(\d{2,4})/);
   if (!parts) return;
@@ -1157,6 +1237,11 @@ function renderCoach() {
   const el = document.getElementById('coachInit'); if (el) el.textContent = (d.fname || '?')[0].toUpperCase();
   safe('coachFname', d.fname); safe('coachCname', d.cname); safe('coachSince', d.since);
   [['j','kJ'],['v','kV'],['n','kN'],['d','kD'],['pts','kPts']].forEach(function(p) { safe(p[1], d[p[0]] || 0); });
+  // Apply avatar photo if exists
+  applyAvatar(d.avatar || null);
+  // Show/hide upload hint based on permissions
+  const left = document.getElementById('coachLeft');
+  if (left) left.style.cursor = canEdit(currentClub) ? 'pointer' : 'default';
 }
 async function saveCoach() {
   if (!canEdit(currentClub)) return;
@@ -1184,7 +1269,7 @@ async function addTrophy() {
   await scur('trophies', list);
   document.getElementById('tName').value = ''; document.getElementById('tYear').value = '';
   renderTrophies(); await refreshHomeStats();
-  showToast('Trophee ajoute !', 'success');
+  showToast('Trophee ajoute !', 'success'); pushNotif(currentClub, 'trophy', n);
 }
 async function delTrophy(id) {
   if (!canEdit(currentClub)) return;
@@ -1212,7 +1297,7 @@ async function addExploit() {
   list.unshift({ id: Date.now(), season: document.getElementById('exSeason').value.trim(), text: txt });
   await scur('exploits', list);
   document.getElementById('exText').value = ''; document.getElementById('exSeason').value = '';
-  renderExploits(); showToast('Exploit ajoute !', 'success');
+  renderExploits(); showToast('Exploit ajoute !', 'success'); pushNotif(currentClub, 'exploit', txt.substring(0,80));
 }
 async function delExploit(id) {
   if (!canEdit(currentClub)) return;
@@ -1275,7 +1360,7 @@ async function addNews() {
   list.unshift({ id: Date.now(), text, media: selectedNewsMedia, cat: selectedNewsCat, likes: ns.likes, views: ns.views, reposts: ns.reposts, liked: false, reposted: false, time: nowStr() });
   await scur('news', list);
   document.getElementById('newsText').value = '';
-  renderNewsFeed(); showToast('Publie !', 'success');
+  renderNewsFeed(); showToast('Publie !', 'success'); pushNotif(currentClub, 'news', text.substring(0,80));
 }
 async function likeNews(id)   { const list = getCache(currentClub, 'news') || []; const p = list.find(n => n.id === id); if (!p) return; p.liked = !p.liked; p.likes += p.liked ? 1 : -1; await scur('news', list); renderNewsFeed(); }
 async function repostNews(id) { const list = getCache(currentClub, 'news') || []; const p = list.find(n => n.id === id); if (!p) return; p.reposted = !p.reposted; p.reposts += p.reposted ? 1 : -1; await scur('news', list); renderNewsFeed(); }
@@ -1322,7 +1407,7 @@ async function addTransfer() {
   list.unshift({ id: Date.now(), type, player, club: document.getElementById('trClub').value.trim(), fee: document.getElementById('trFee').value.trim(), comment: document.getElementById('trComment').value.trim() || TR_HERE[type], likes: ts.likes, views: ts.views, reposts: ts.reposts, liked: false, reposted: false, time: nowStr() });
   await scur('transfers', list);
   ['trPlayer','trClub','trFee','trComment'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  renderTransferFeed(); showToast('Transfert publie !', 'success');
+  renderTransferFeed(); showToast('Transfert publie !', 'success'); pushNotif(currentClub, 'transfer', player + (document.getElementById('trClub').value ? ' -> ' + document.getElementById('trClub').value : ''));
 }
 async function likeTr(id)   { const list = getCache(currentClub, 'transfers') || []; const p = list.find(t => t.id === id); if (!p) return; p.liked = !p.liked; p.likes += p.liked ? 1 : -1; await scur('transfers', list); renderTransferFeed(); }
 async function repostTr(id) { const list = getCache(currentClub, 'transfers') || []; const p = list.find(t => t.id === id); if (!p) return; p.reposted = !p.reposted; p.reposts += p.reposted ? 1 : -1; await scur('transfers', list); renderTransferFeed(); }
@@ -1362,7 +1447,7 @@ async function addWorldNews() {
   list.unshift({ id: Date.now(), text, media: selectedWorldMedia, cat: selectedWorldCat, likes: ws.likes, views: ws.views, reposts: ws.reposts, liked: false, reposted: false, postedBy: currentUser.club, time: nowStr() });
   await saveAndCache('world', 'posts', list);
   document.getElementById('worldText').value = '';
-  renderWorldFeed(); showToast('Annonce mondiale publiee !', 'success');
+  renderWorldFeed(); showToast('Annonce mondiale publiee !', 'success'); pushNotif('world', 'world', text.substring(0,80));
 }
 async function likeWorld(id)   { const list = getCache('world','posts')||[]; const p=list.find(n=>n.id===id); if(!p) return; p.liked=!p.liked; p.likes+=p.liked?1:-1; await saveAndCache('world','posts',list); renderWorldFeed(); }
 async function repostWorld(id) { const list = getCache('world','posts')||[]; const p=list.find(n=>n.id===id); if(!p) return; p.reposted=!p.reposted; p.reposts+=p.reposted?1:-1; await saveAndCache('world','posts',list); renderWorldFeed(); }
@@ -1389,6 +1474,45 @@ async function refreshHomeStats() {
     safe('home-' + id + '-mgr', coach && coach.fname ? coach.fname : CLUBS[id].fname);
     safe('home-' + id + '-pts', coach && coach.pts   ? coach.pts   : '—');
     safe('home-' + id + '-tr',  trophies.length);
+  }
+}
+
+
+// ── AVATAR PHOTO ─────────────────────────────────────────────────
+function triggerAvatarUpload() {
+  if (!canEdit(currentClub)) return;
+  document.getElementById('avatarInput').click();
+}
+
+function handleAvatarUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 500000) { showToast('Image trop lourde (max 500KB)', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const base64 = e.target.result;
+    // Save to DB
+    const coach = getCache(currentClub, 'coach') || {};
+    coach.avatar = base64;
+    await scur('coach', coach);
+    applyAvatar(base64);
+    showToast('Photo mise a jour !', 'success');
+    pushNotif(currentClub, 'player', 'Photo du manager mise a jour');
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyAvatar(base64) {
+  const img = document.getElementById('coachAvatarImg');
+  const placeholder = document.getElementById('coachAvatarPlaceholder');
+  if (!img || !placeholder) return;
+  if (base64) {
+    img.src = base64;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    placeholder.style.display = 'flex';
   }
 }
 
