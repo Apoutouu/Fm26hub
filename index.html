@@ -433,23 +433,6 @@ summary::before{content:'⚙';font-size:13px}
   .toast{bottom:max(24px, calc(16px + env(safe-area-inset-bottom)))}
 }
 
-/* ── NOTIFICATIONS ───────────────────────────────────────────────── */
-.notif-container{position:fixed;top:66px;right:14px;z-index:997;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:280px}
-@media(max-width:400px){.notif-container{width:calc(100vw - 28px);right:14px}}
-.notif{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:flex-start;gap:10px;pointer-events:all;animation:notifIn .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 32px rgba(0,0,0,.5);transition:opacity .35s,transform .35s}
-@keyframes notifIn{from{opacity:0;transform:translateX(30px) scale(.95)}to{opacity:1;transform:none}}
-.notif-left{flex-shrink:0}
-.notif-logo-wrap{width:36px;height:36px;border-radius:50%;border:2px solid #333;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg3)}
-.notif-logo{width:32px;height:32px;object-fit:contain}
-.notif-logo-world{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:2px solid rgba(246,235,97,.3);display:flex;align-items:center;justify-content:center;font-size:18px}
-.notif-body{flex:1;min-width:0}
-.notif-header{display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap}
-.notif-club{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.notif-type{font-size:10px;color:var(--txt2);white-space:nowrap}
-.notif-text{font-size:12px;color:var(--txt2);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.notif-close{background:none;border:none;color:var(--txt2);cursor:pointer;font-size:13px;padding:0;line-height:1;flex-shrink:0;opacity:.4;transition:opacity .2s;align-self:flex-start}
-.notif-close:hover{opacity:1}
-
 /* ── AVATAR PHOTO ────────────────────────────────────────────────── */
 .coach-avatar-wrap{position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .coach-avatar-wrap:hover .coach-avatar-overlay{opacity:1}
@@ -459,7 +442,22 @@ summary::before{content:'⚙';font-size:13px}
 .coach-left{cursor:pointer;position:relative}
 .coach-left:hover .coach-avatar-overlay{opacity:1}
 .coach-avatar-input{display:none}
-</style>
+
+/* ── INBOX ───────────────────────────────────────────────────────── */
+.inbox-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
+.inbox-item:hover{background:rgba(255,255,255,.03)}
+.inbox-item:last-child{border-bottom:none}
+.inbox-item.unread{background:rgba(255,255,255,.03)}
+.inbox-logo{width:36px;height:36px;border-radius:50%;object-fit:contain;flex-shrink:0;background:var(--bg3);padding:3px}
+.inbox-logo-world{width:36px;height:36px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.inbox-body{flex:1;min-width:0}
+.inbox-club{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.inbox-title{font-size:12px;font-weight:600;color:var(--txt);margin-bottom:2px}
+.inbox-text{font-size:12px;color:var(--txt2);line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.inbox-time{font-size:10px;color:var(--txt2);margin-top:3px}
+.inbox-unread-dot{width:7px;height:7px;border-radius:50%;background:#f87171;flex-shrink:0;margin-top:4px}
+
+/* ── AVATAR PHOTO
 </head>
 <body>
 
@@ -471,8 +469,23 @@ summary::before{content:'⚙';font-size:13px}
 <div id="toast" class="toast"></div>
 
 
-<!-- NOTIFICATION CONTAINER -->
-<div class="notif-container" id="notifContainer"></div>
+
+<!-- ══ INBOX PANEL ══ -->
+<div id="inboxPanel" style="display:none;position:fixed;top:58px;right:14px;width:320px;max-width:calc(100vw - 28px);background:var(--bg2);border:1px solid var(--border);border-radius:14px;z-index:500;box-shadow:0 12px 40px rgba(0,0,0,.6);overflow:hidden;animation:fadeUp .2s ease">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.08em;color:#fff">Notifications</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="clearInbox()" style="background:none;border:none;font-size:11px;color:var(--txt2);cursor:pointer;font-family:'Barlow',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;transition:color .2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color=''">Tout effacer</button>
+      <button onclick="toggleInbox()" style="background:none;border:none;color:var(--txt2);cursor:pointer;font-size:18px;line-height:1;padding:0 2px">✕</button>
+    </div>
+  </div>
+  <div id="inboxList" style="max-height:420px;overflow-y:auto;padding:8px 0">
+    <div id="inboxEmpty" style="padding:32px 16px;text-align:center;color:var(--txt2)">
+      <div style="font-size:28px;opacity:.3;margin-bottom:8px">🔔</div>
+      <div style="font-size:13px">Aucune notification</div>
+    </div>
+  </div>
+</div>
 
 <!-- ══ PAGE LOGIN ══ -->
 <div class="page" id="pageLogin" style="display:none">
@@ -525,7 +538,11 @@ summary::before{content:'⚙';font-size:13px}
       <div class="sw sw-nffc" onclick="showClub('nffc')" title="Nottingham Forest" id="sw-nffc"><img id="sw-nffc-img" src="" alt="NFFC"></div>
     </div>
     <button class="btn-home-text" id="btnHome" onclick="showHome()" style="display:none">← Menu</button>
-    <div id="userBadge"></div><button id="btnLogout" onclick="logout()">← Déco</button><button class="btn-icon" onclick="openSettings()" title="Paramètres">⚙</button>
+    <div id="userBadge"></div><button id="btnLogout" onclick="logout()">← Déco</button><button class="btn-icon" onclick="toggleInbox()" title="Notifications" style="position:relative" id="bellBtn">
+        🔔
+        <span id="notifBadge" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;background:#f87171;border-radius:50%;border:2px solid var(--bg2)"></span>
+      </button>
+      <button class="btn-icon" onclick="openSettings()" title="Paramètres">⚙</button>
   </div>
 </header>
 
@@ -1519,6 +1536,178 @@ function applyAvatar(base64) {
   }
 }
 
+
+// ── INBOX / NOTIFICATION BOX ──────────────────────────────────────
+let inboxItems = [];
+let inboxOpen = false;
+let lastCheckedTs = Date.now();
+let pollingTimer = null;
+
+const TYPE_TITLE = {
+  news:     'Nouvelle actualite',
+  transfer: 'Mouvement mercato',
+  trophy:   'Nouveau trophee',
+  exploit:  'Nouvel exploit',
+  player:   'Nouveau joueur cle',
+  world:    'Actu mondiale',
+  avatar:   'Photo de profil mise a jour'
+};
+const TYPE_ICON = {
+  news:'📰', transfer:'🔄', trophy:'🏆', exploit:'⚡', player:'⚽', world:'🌍', avatar:'📷'
+};
+
+function toggleInbox() {
+  inboxOpen = !inboxOpen;
+  document.getElementById('inboxPanel').style.display = inboxOpen ? 'block' : 'none';
+  if (inboxOpen) {
+    // Mark all as read
+    inboxItems.forEach(n => n.unread = false);
+    updateBadge();
+  }
+  // Close if clicking outside
+  if (inboxOpen) {
+    setTimeout(() => {
+      document.addEventListener('click', closeInboxOutside, { once: true });
+    }, 10);
+  }
+}
+
+function closeInboxOutside(e) {
+  const panel = document.getElementById('inboxPanel');
+  const bell  = document.getElementById('bellBtn');
+  if (!panel) return;
+  if (!panel.contains(e.target) && !bell.contains(e.target)) {
+    inboxOpen = false;
+    panel.style.display = 'none';
+  }
+}
+
+function updateBadge() {
+  const badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  const unread = inboxItems.filter(n => n.unread).length;
+  badge.style.display = unread > 0 ? 'block' : 'none';
+}
+
+function addToInbox(clubId, type, text, ts, navigate) {
+  const item = { id: ts || Date.now(), clubId, type, text, ts: ts || Date.now(), unread: true, navigate };
+  inboxItems.unshift(item);
+  if (inboxItems.length > 50) inboxItems.pop();
+  renderInbox();
+  updateBadge();
+}
+
+function renderInbox() {
+  const list = document.getElementById('inboxList');
+  const empty = document.getElementById('inboxEmpty');
+  if (!list) return;
+  list.querySelectorAll('.inbox-item').forEach(e => e.remove());
+  empty.style.display = inboxItems.length ? 'none' : 'block';
+
+  inboxItems.forEach(n => {
+    const isWorld = n.clubId === 'world';
+    const clubCfg = CLUBS[n.clubId];
+    const color   = clubCfg ? clubCfg.primary : '#F6EB61';
+    const clubName = clubCfg ? clubCfg.name : 'Actu Monde FM';
+    const icon    = TYPE_ICON[n.type] || '📢';
+    const title   = TYPE_TITLE[n.type] || 'Nouvelle info';
+    const timeStr = new Date(n.ts).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) +
+                    ' - ' + new Date(n.ts).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+
+    const d = document.createElement('div');
+    d.className = 'inbox-item' + (n.unread ? ' unread' : '');
+    d.onclick = () => {
+      // Navigate to the right place
+      inboxOpen = false;
+      document.getElementById('inboxPanel').style.display = 'none';
+      n.unread = false;
+      updateBadge();
+      if (n.navigate) n.navigate();
+    };
+    d.innerHTML =
+      (isWorld
+        ? '<div class="inbox-logo-world">' + icon + '</div>'
+        : '<img class="inbox-logo" src="' + LOGOS[n.clubId] + '" alt="" style="border:2px solid ' + color + '">') +
+      '<div class="inbox-body">' +
+        '<div class="inbox-club" style="color:' + color + '">' + (isWorld ? 'Actu Monde FM' : clubName) + '</div>' +
+        '<div class="inbox-title">' + icon + ' ' + title + '</div>' +
+        '<div class="inbox-text">' + n.text + '</div>' +
+        '<div class="inbox-time">' + timeStr + '</div>' +
+      '</div>' +
+      (n.unread ? '<div class="inbox-unread-dot"></div>' : '');
+    list.appendChild(d);
+  });
+}
+
+function clearInbox() {
+  inboxItems = [];
+  renderInbox();
+  updateBadge();
+}
+
+// Navigation helpers per type
+function navForNotif(clubId, type) {
+  if (clubId === 'world') return () => showWorld();
+  const tabMap = { news:'actu', transfer:'transferts', trophy:'coach', exploit:'coach', player:'joueurs', avatar:'coach' };
+  const tab = tabMap[type] || 'coach';
+  return async () => {
+    await showClub(clubId);
+    switchTab(tab);
+  };
+}
+
+// Write notif event to Supabase
+async function writeNotifEvent(clubId, type, text) {
+  try {
+    await fetch(SUPA_URL + '/rest/v1/posts', {
+      method: 'POST',
+      headers: { ...HEADERS, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ club: 'notifs', type: type, data: { clubId, type, text, ts: Date.now() } })
+    });
+  } catch(e) { console.error('writeNotifEvent', e); }
+}
+
+// Poll Supabase for new notif events
+let lastNotifId = 0;
+async function pollNotifs() {
+  try {
+    const r = await fetch(SUPA_URL + '/rest/v1/posts?club=eq.notifs&select=id,data&order=id.desc&limit=20', { headers: HEADERS });
+    if (!r.ok) return;
+    const rows = await r.json();
+    if (!rows || !rows.length) return;
+
+    // First poll: just record the latest id, don't show old notifs
+    if (lastNotifId === 0) { lastNotifId = rows[0].id; return; }
+
+    const newRows = rows.filter(row => row.id > lastNotifId);
+    if (!newRows.length) return;
+    lastNotifId = rows[0].id;
+
+    // Show newest last (ascending order)
+    newRows.reverse().forEach(row => {
+      const d = row.data;
+      if (!d || !d.clubId) return;
+      // Skip own publications (already added locally)
+      if (currentUser && currentUser.club === d.clubId && d.clubId !== 'world') return;
+      addToInbox(d.clubId, d.type, d.text, d.ts, navForNotif(d.clubId, d.type));
+    });
+  } catch(e) { console.error('pollNotifs', e); }
+}
+
+function startPolling() {
+  if (pollingTimer) clearInterval(pollingTimer);
+  pollNotifs(); // Init lastNotifId
+  pollingTimer = setInterval(pollNotifs, 8000);
+}
+
+// Main pushNotif — called when YOU publish something
+async function pushNotif(clubId, type, text) {
+  // Add to your own inbox immediately
+  addToInbox(clubId, type, text, Date.now(), navForNotif(clubId, type));
+  // Write to DB so others see it
+  await writeNotifEvent(clubId, type, text);
+}
+
 // ── INIT ──────────────────────────────────────────────────────────
 async function init() {
   injectLogos();
@@ -1531,7 +1720,6 @@ async function init() {
   } else {
     showLogin();
   }
-  // Start real-time polling for notifications (works for everyone)
   startPolling();
 }
 init();
