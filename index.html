@@ -434,17 +434,20 @@ summary::before{content:'⚙';font-size:13px}
 }
 
 /* ── NOTIFICATIONS ───────────────────────────────────────────────── */
-.notif-container{position:fixed;top:64px;right:16px;z-index:997;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:300px}
-.notif{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;pointer-events:all;animation:notifIn .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:opacity .3s,transform .3s}
-.notif.out{opacity:0;transform:translateX(20px)}
-@keyframes notifIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
-.notif-logo{width:32px;height:32px;border-radius:50%;object-fit:contain;flex-shrink:0;background:var(--bg3);padding:2px}
-.notif-logo-world{width:32px;height:32px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.notif-container{position:fixed;top:66px;right:14px;z-index:997;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:280px}
+@media(max-width:400px){.notif-container{width:calc(100vw - 28px);right:14px}}
+.notif{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:flex-start;gap:10px;pointer-events:all;animation:notifIn .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 32px rgba(0,0,0,.5);transition:opacity .35s,transform .35s}
+@keyframes notifIn{from{opacity:0;transform:translateX(30px) scale(.95)}to{opacity:1;transform:none}}
+.notif-left{flex-shrink:0}
+.notif-logo-wrap{width:36px;height:36px;border-radius:50%;border:2px solid #333;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg3)}
+.notif-logo{width:32px;height:32px;object-fit:contain}
+.notif-logo-world{width:36px;height:36px;border-radius:50%;background:var(--bg3);border:2px solid rgba(246,235,97,.3);display:flex;align-items:center;justify-content:center;font-size:18px}
 .notif-body{flex:1;min-width:0}
-.notif-club{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;transition:color .4s}
+.notif-header{display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap}
+.notif-club{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.notif-type{font-size:10px;color:var(--txt2);white-space:nowrap}
 .notif-text{font-size:12px;color:var(--txt2);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.notif-time{font-size:10px;color:var(--txt2);margin-top:3px}
-.notif-close{background:none;border:none;color:var(--txt2);cursor:pointer;font-size:14px;padding:0;line-height:1;flex-shrink:0;opacity:.5}
+.notif-close{background:none;border:none;color:var(--txt2);cursor:pointer;font-size:13px;padding:0;line-height:1;flex-shrink:0;opacity:.4;transition:opacity .2s;align-self:flex-start}
 .notif-close:hover{opacity:1}
 
 /* ── AVATAR PHOTO ────────────────────────────────────────────────── */
@@ -1269,7 +1272,7 @@ async function addTrophy() {
   await scur('trophies', list);
   document.getElementById('tName').value = ''; document.getElementById('tYear').value = '';
   renderTrophies(); await refreshHomeStats();
-  showToast('Trophee ajoute !', 'success'); pushNotif(currentClub, 'trophy', n);
+  showToast('Trophee ajoute !', 'success'); await pushNotif(currentClub, 'trophy', n);
 }
 async function delTrophy(id) {
   if (!canEdit(currentClub)) return;
@@ -1297,7 +1300,7 @@ async function addExploit() {
   list.unshift({ id: Date.now(), season: document.getElementById('exSeason').value.trim(), text: txt });
   await scur('exploits', list);
   document.getElementById('exText').value = ''; document.getElementById('exSeason').value = '';
-  renderExploits(); showToast('Exploit ajoute !', 'success'); pushNotif(currentClub, 'exploit', txt.substring(0,80));
+  renderExploits(); showToast('Exploit ajoute !', 'success'); await pushNotif(currentClub, 'exploit', txt.substring(0,80));
 }
 async function delExploit(id) {
   if (!canEdit(currentClub)) return;
@@ -1325,7 +1328,7 @@ async function addPlayer() {
   list.push({ id: Date.now(), num: document.getElementById('pNum').value.trim(), name, nat: document.getElementById('pNat').value.trim(), pos: document.getElementById('pPos').value.trim(), apps: document.getElementById('pApps').value.trim(), goals: document.getElementById('pGoals').value.trim(), ast: document.getElementById('pAst').value.trim(), note: document.getElementById('pNote').value.trim() });
   await scur('players', list);
   ['pNum','pName','pNat','pPos','pApps','pGoals','pAst','pNote'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  renderPlayers(); showToast('Joueur ajoute !', 'success');
+  renderPlayers(); showToast('Joueur ajoute !', 'success'); await pushNotif(currentClub, 'player', name);
 }
 async function delPlayer(id) {
   if (!canEdit(currentClub)) return;
@@ -1360,7 +1363,7 @@ async function addNews() {
   list.unshift({ id: Date.now(), text, media: selectedNewsMedia, cat: selectedNewsCat, likes: ns.likes, views: ns.views, reposts: ns.reposts, liked: false, reposted: false, time: nowStr() });
   await scur('news', list);
   document.getElementById('newsText').value = '';
-  renderNewsFeed(); showToast('Publie !', 'success'); pushNotif(currentClub, 'news', text.substring(0,80));
+  renderNewsFeed(); showToast('Publie !', 'success'); await pushNotif(currentClub, 'news', text.substring(0,80));
 }
 async function likeNews(id)   { const list = getCache(currentClub, 'news') || []; const p = list.find(n => n.id === id); if (!p) return; p.liked = !p.liked; p.likes += p.liked ? 1 : -1; await scur('news', list); renderNewsFeed(); }
 async function repostNews(id) { const list = getCache(currentClub, 'news') || []; const p = list.find(n => n.id === id); if (!p) return; p.reposted = !p.reposted; p.reposts += p.reposted ? 1 : -1; await scur('news', list); renderNewsFeed(); }
@@ -1407,7 +1410,7 @@ async function addTransfer() {
   list.unshift({ id: Date.now(), type, player, club: document.getElementById('trClub').value.trim(), fee: document.getElementById('trFee').value.trim(), comment: document.getElementById('trComment').value.trim() || TR_HERE[type], likes: ts.likes, views: ts.views, reposts: ts.reposts, liked: false, reposted: false, time: nowStr() });
   await scur('transfers', list);
   ['trPlayer','trClub','trFee','trComment'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  renderTransferFeed(); showToast('Transfert publie !', 'success'); pushNotif(currentClub, 'transfer', player + (document.getElementById('trClub').value ? ' -> ' + document.getElementById('trClub').value : ''));
+  renderTransferFeed(); showToast('Transfert publie !', 'success'); await pushNotif(currentClub, 'transfer', player);
 }
 async function likeTr(id)   { const list = getCache(currentClub, 'transfers') || []; const p = list.find(t => t.id === id); if (!p) return; p.liked = !p.liked; p.likes += p.liked ? 1 : -1; await scur('transfers', list); renderTransferFeed(); }
 async function repostTr(id) { const list = getCache(currentClub, 'transfers') || []; const p = list.find(t => t.id === id); if (!p) return; p.reposted = !p.reposted; p.reposts += p.reposted ? 1 : -1; await scur('transfers', list); renderTransferFeed(); }
@@ -1447,7 +1450,7 @@ async function addWorldNews() {
   list.unshift({ id: Date.now(), text, media: selectedWorldMedia, cat: selectedWorldCat, likes: ws.likes, views: ws.views, reposts: ws.reposts, liked: false, reposted: false, postedBy: currentUser.club, time: nowStr() });
   await saveAndCache('world', 'posts', list);
   document.getElementById('worldText').value = '';
-  renderWorldFeed(); showToast('Annonce mondiale publiee !', 'success'); pushNotif('world', 'world', text.substring(0,80));
+  renderWorldFeed(); showToast('Annonce mondiale publiee !', 'success'); await pushNotif('world', 'world', text.substring(0,80));
 }
 async function likeWorld(id)   { const list = getCache('world','posts')||[]; const p=list.find(n=>n.id===id); if(!p) return; p.liked=!p.liked; p.likes+=p.liked?1:-1; await saveAndCache('world','posts',list); renderWorldFeed(); }
 async function repostWorld(id) { const list = getCache('world','posts')||[]; const p=list.find(n=>n.id===id); if(!p) return; p.reposted=!p.reposted; p.reposts+=p.reposted?1:-1; await saveAndCache('world','posts',list); renderWorldFeed(); }
@@ -1497,7 +1500,7 @@ function handleAvatarUpload(event) {
     await scur('coach', coach);
     applyAvatar(base64);
     showToast('Photo mise a jour !', 'success');
-    pushNotif(currentClub, 'player', 'Photo du manager mise a jour');
+    await pushNotif(currentClub, 'avatar', 'Photo du manager mise a jour');
   };
   reader.readAsDataURL(file);
 }
@@ -1528,6 +1531,8 @@ async function init() {
   } else {
     showLogin();
   }
+  // Start real-time polling for notifications (works for everyone)
+  startPolling();
 }
 init();
 
